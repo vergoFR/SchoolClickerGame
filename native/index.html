@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Clicker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+
+  <div class="title-bar">
+    <h1>School Clicker</h1>
+    <div class="title-controls">
+      <div class="rebirth-counter">Rebirths: <span id="rebirthCount">0</span></div>
+      <input type="file" id="loadInput" accept=".json" style="display: none;">
+      <button class="title-btn" id="saveBtn">Save</button>
+      <button class="title-btn" id="loadBtn">Load</button>
+      <button class="title-btn rebirth-btn" id="rebirthBtn" disabled>Rebirth</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="score-panel">
+      <div class="score-label">Score</div>
+      <div class="score-value" id="score">0</div>
+    </div>
+
+    <div class="clicker-container">
+      <button class="clicker-button" id="clickerBtn" aria-label="Click to earn points"></button>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stat-card">
+        <div class="stat-value" id="perClick">+1</div>
+        <div class="stat-label">Per Click</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="perSecond">0</div>
+        <div class="stat-label">Per Second</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalClicks">0</div>
+        <div class="stat-label">Total Clicks</div>
+      </div>
+    </div>
+
+    <div class="upgrade-panel">
+      <div class="upgrade-title">Upgrades</div>
+      <div id="upgrades"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

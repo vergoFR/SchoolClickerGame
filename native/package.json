@@ -1,0 +1,58 @@
+{
+  "name": "school-clicker",
+  "productName": "School Clicker",
+  "version": "1.0.0",
+  "description": "An iOS 26-inspired liquid glass clicker game - Native Windows App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "pack": "electron-packager . SchoolClicker --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico --prune=true"
+  },
+  "build": {
+    "appId": "com.schoolclicker.app",
+    "productName": "School Clicker",
+    "win": {
+      "target": "nsis",
+      "arch": [
+        "x64",
+        "ia32"
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "School Clicker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "School Clicker"
+    },
+    "files": [
+      "index.html",
+      "style.css",
+      "script.js",
+      "main.js",
+      "preload.js",
+      "assets/**/*"
+    ],
+    "extraFiles": [],
+    "publish": null
+  },
+  "keywords": [
+    "clicker",
+    "game",
+    "electron",
+    "windows",
+    "native"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "allowScripts": {
+    "electron@28.3.3": true
+  }
+}

@@ -3,7 +3,7 @@
 ## [v1.1.0] - Current
 
 ### Added
-- **Native Windows Executable** — Electron-packaged `.exe` in `native/dist/SchoolClicker-win32-x64/SchoolClicker.exe`. Runs on any fresh Windows install with no npm, Node.js, or Electron required
+- **Native Windows App (source)** — Electron source in `native/` folder. Run `npm install` then `npm run pack` to build `SchoolClicker.exe`. Runs on any fresh Windows install with no npm, Node.js, or Electron required once built
 - **Source Code Split** — Separated monolithic `index.html` into `index.html`, `style.css`, and `script.js` for proper project structure
 - **Web Single-File Version** — `web/index.html` (CSS and JS inline) for quick browser open with no other files needed
 - **Rebirth System** — Reach 1QA (1 quadrillion) score to unlock Rebirth. Resets score and upgrades but grants a permanent +25% bonus per rebirth to passive income and click gains. Rebirth counter and bonus persist across sessions

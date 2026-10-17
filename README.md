@@ -36,16 +36,15 @@ SchoolClicker/
 ├── .gitignore          # Git ignore rules
 ├── web/
 │   └── index.html      # Self-contained single-file version (quick browser open — no other files needed)
-└── native/             # Electron Windows app
+└── native/             # Electron Windows app (source only — run `npm install` then `npm run pack` to build)
     ├── main.js         # Electron main process (native window, menu, IPC save/load dialogs)
     ├── preload.js      # Secure context bridge (contextIsolation enabled)
     ├── package.json    # Electron config + build settings
     ├── index.html      # Game UI (references style.css + script.js)
     ├── style.css       # Copy of root style.css
     ├── script.js       # Copy of root script.js
-    └── dist/
-        └── SchoolClicker-win32-x64/
-            └── SchoolClicker.exe   ← Native Windows executable (no dependencies needed)
+    └── assets/
+        └── icon.ico    # App icon
 ```
 
 ## How to Play
@@ -63,14 +62,15 @@ SchoolClicker/
 Open `index.html` or `web/index.html` directly in any browser. No server, no npm, no internet needed.
 
 ### Native Windows Version
-Run `native/dist/SchoolClicker-win32-x64/SchoolClicker.exe` — works on any fresh Windows install with **no npm, no Node.js, and no Electron pre-installed**.
+Build from source in the `native/` folder — works on any fresh Windows install with **no npm, no Node.js, and no Electron pre-installed** once built.
 
-To rebuild the native app:
 ```bash
 cd native
 npm install
 npm run pack
 ```
+
+This produces `dist/SchoolClicker-win32-x64/SchoolClicker.exe` — a standalone executable.
 
 ## Colors
 
