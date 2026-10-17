@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Clicker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #007AFF 0%, #FF2D92 100%);
+      color: #fff;
+    }
+
+    /* Animated mesh gradient background */
+    .bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .blob {
+      position: absolute;
+      width: 50vmin;
+      height: 50vmin;
+      border-radius: 45%;
+      filter: blur(100px);
+      will-change: transform;
+      pointer-events: none;
+      transition: none;
+    }
+
+    .blob:nth-child(1) {
+      background: rgba(0, 122, 255, 0.6);
+    }
+
+    .blob:nth-child(2) {
+      background: rgba(168, 85, 247, 0.8);
+    }
+
+    /* Title Bar */
+    .title-bar {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .title-bar h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      margin: 0;
+      flex: 1;
+    }
+
+    .title-controls {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .title-btn {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .title-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .title-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    /* Rebirth button styling */
+    .rebirth-btn {
+      background: linear-gradient(135deg, #AF52DE 0%, #7B2CBF 100%);
+      border: 1px solid rgba(175, 82, 222, 0.3);
+    }
+
+    .rebirth-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #C084FC 0%, #8B5CF6 100%);
+      border-color: rgba(175, 82, 222, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .rebirth-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .rebirth-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .rebirth-counter {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      margin-right: 12px;
+      white-space: nowrap;
+      line-height: 32px;
+    }
+
+    /* Main Content */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      gap: 24px;
+      position: relative;
+    }
+
+    /* Score Panel */
+    .score-panel {
+      position: relative;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 32px;
+      padding: 32px 48px;
+      text-align: center;
+      box-shadow: var(--glass-shadow);
+      transition: transform 0.2s ease;
+    }
+
+    .score-panel:hover {
+      transform: translateY(-2px);
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 12px;
+    }
+
+    .score-value {
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -3px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+    }
+
+    /* Clicker Container */
+    .clicker-container {
+      position: relative;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 48px;
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* Clicker Button */
+    .clicker-button {
+      width: 160px;
+      height: 160px;
+      border: none;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at var(--x, 30%) var(--y, 30%), rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.1) 40%, transparent 70%),
+        linear-gradient(135deg, #007AFF 0%, #5856D6 50%, #AF52DE 100%);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow:
+        0 8px 40px rgba(0, 122, 255, 0.45),
+        inset 0 2px 0 rgba(255,255,255,0.4),
+        inset 0 -2px 0 rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .clicker-button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at var(--x, 30%) var(--y, 30%), rgba(255,255,255,0.5) 0%, transparent 80%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .clicker-button:hover::before {
+      opacity: 1;
+    }
+
+    .clicker-button:hover {
+      box-shadow:
+        0 12px 48px rgba(0, 122, 255, 0.55),
+        inset 0 2px 0 rgba(255,255,255,0.5),
+        inset 0 -2px 0 rgba(0,0,0,0.25);
+      transform: translateY(-2px);
+    }
+
+    .clicker-button:active {
+      transform: scale(0.9);
+      box-shadow:
+        0 4px 20px rgba(0, 122, 255, 0.4),
+        inset 0 3px 8px rgba(0,0,0,0.3);
+    }
+
+    .clicker-button .plus-one {
+      position: absolute;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #fff;
+      pointer-events: none;
+      animation: floatUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-50px) scale(1.3); }
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: -8px;
+    }
+
+    .stat-card {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 16px 24px;
+      min-width: 130px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.5px;
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 6px;
+    }
+
+    /* Upgrades Panel */
+    .upgrade-panel {
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 24px 32px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .upgrade-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 20px;
+    }
+
+    .upgrade-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.2s ease;
+    }
+
+    .upgrade-item:last-child {
+      border-bottom: none;
+    }
+
+    .upgrade-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .upgrade-cost-row {
+      margin-left: 16px;
+    }
+
+    .upgrade-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      margin-right: 16px;
+    }
+
+    .upgrade-name {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .upgrade-level {
+      font-weight: 500;
+      opacity: 0.6;
+      font-size: 0.85rem;
+    }
+
+    .upgrade-desc {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .upgrade-cost-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .upgrade-btn {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .upgrade-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .upgrade-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .upgrade-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      .score-value {
+        font-size: 3.5rem;
+      }
+      .clicker-container {
+        padding: 32px 24px;
+      }
+      .clicker-button {
+        width: 140px;
+        height: 140px;
+      }
+      .score-panel {
+        padding: 24px 32px;
+      }
+      .upgrade-panel {
+        padding: 20px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg">
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+
+  <div class="title-bar">
+    <h1>School Clicker</h1>
+    <div class="title-controls">
+      <div class="rebirth-counter">Rebirths: <span id="rebirthCount">0</span></div>
+      <input type="file" id="loadInput" accept=".json" style="display: none;">
+      <button class="title-btn" id="saveBtn">Save</button>
+      <button class="title-btn" id="loadBtn">Load</button>
+      <button class="title-btn rebirth-btn" id="rebirthBtn" disabled>Rebirth</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="score-panel">
+      <div class="score-label">Score</div>
+      <div class="score-value" id="score">0</div>
+    </div>
+
+    <div class="clicker-container">
+      <button class="clicker-button" id="clickerBtn" aria-label="Click to earn points"></button>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stat-card">
+        <div class="stat-value" id="perClick">+1</div>
+        <div class="stat-label">Per Click</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="perSecond">0</div>
+        <div class="stat-label">Per Second</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalClicks">0</div>
+        <div class="stat-label">Total Clicks</div>
+      </div>
+    </div>
+
+    <div class="upgrade-panel">
+      <div class="upgrade-title">Upgrades</div>
+      <div id="upgrades"></div>
+    </div>
+  </div>
+
+  <script>
+    const upgradesData = [
+      { id: 'clickPower', name: 'Finger Power', baseCost: 100, baseGain: 1, desc: 'Increase points earned per click', type: 'click' },
+      { id: 'cursor', name: 'Auto Clicker', baseCost: 15, baseGain: 2, desc: 'Passively earns points over time', type: 'passive' },
+      { id: 'mouse', name: 'Gaming Mouse', baseCost: 100, baseGain: 10, desc: 'Faster auto-clicking', type: 'passive' },
+      { id: 'keyboard', name: 'Mechanical Keyboard', baseCost: 500, baseGain: 50, desc: 'Rapid fire clicks', type: 'passive' },
+      { id: 'bot', name: 'Click Bot', baseCost: 2500, baseGain: 200, desc: 'Automated clicking system', type: 'passive' },
+      { id: 'ai', name: 'AI Clicker', baseCost: 15000, baseGain: 1000, desc: 'Smart auto-clicking AI', type: 'passive' },
+      { id: 'quantum', name: 'Quantum Clicker', baseCost: 100000, baseGain: 5000, desc: 'Transcendent clicking', type: 'passive' },
+      { id: 'crit', name: 'Critical Strike', baseCost: 500, chance: 0.05, multiplier: 10, desc: '5% chance per click for 10x damage', type: 'crit' },
+      { id: 'combo', name: 'Combo Master', baseCost: 1000, desc: 'Each click adds +10% multiplier (resets after 1s pause)', type: 'combo' },
+      { id: 'echo', name: 'Echo Clicks', baseCost: 3000, chance: 0.25, desc: '25% chance each click spawns a free ghost click', type: 'echo' },
+      { id: 'momentum', name: 'Momentum', baseCost: 8000, desc: 'Clicking faster increases per-click value up to +200%', type: 'momentum' },
+      { id: 'magnet', name: 'Click Magnet', baseCost: 20000, bonus: 0.15, desc: 'Each click collects 15% of passive income instantly', type: 'magnet' },
+      { id: 'synergy', name: 'Synergy Engine', baseCost: 50000, bonus: 0.05, desc: 'Each owned upgrade boosts all passive income by 5%', type: 'synergy' },
+      { id: 'timewarp', name: 'Time Warp', baseCost: 200000, speedBonus: 0.5, desc: 'Speeds up game time by 50% (faster passive ticks)', type: 'timewarp' }
+    ];
+
+    // Auto-save to localStorage (persists across sessions automatically)
+    function autoSave() {
+      try {
+        const saveData = {
+          score,
+          perClick,
+          perSecond,
+          totalClicks,
+          lastClickTime,
+          comboCounter,
+          rebirths,
+          upgrades: {}
+        };
+        Object.keys(upgrades).forEach(key => {
+          saveData.upgrades[key] = { ...upgrades[key] };
+        });
+        localStorage.setItem('school-clicker-save', JSON.stringify(saveData));
+      } catch (e) {
+        // localStorage may be blocked in some contexts
+      }
+    }
+
+    function autoLoad() {
+      try {
+        const saved = localStorage.getItem('school-clicker-save');
+        if (saved) {
+          const saveData = JSON.parse(saved);
+          score = saveData.score || 0;
+          perClick = saveData.perClick || 1;
+          perSecond = saveData.perSecond || 0;
+          totalClicks = saveData.totalClicks || 0;
+          lastClickTime = saveData.lastClickTime || 0;
+          comboCounter = saveData.comboCounter || 0;
+          rebirths = saveData.rebirths || 0;
+          rebirthBonus = 1 + (rebirths * 0.25);
+          if (saveData.upgrades) {
+            Object.keys(saveData.upgrades).forEach(key => {
+              if (upgrades[key]) {
+                upgrades[key] = { ...upgrades[key], ...saveData.upgrades[key] };
+              }
+            });
+          }
+        }
+      } catch (e) {
+        // ignore load errors, start fresh
+      }
+    }
+
+    // Game state
+    let score = 0;
+    let perClick = 1;
+    let perSecond = 0;
+    let totalClicks = 0;
+    let lastClickTime = 0;
+    let comboCounter = 0;
+    let comboTimeout = null;
+    let rebirths = 0;
+    let rebirthBonus = 1;
+
+    const upgrades = {};
+    upgradesData.forEach(u => {
+      upgrades[u.id] = { level: 0, cost: u.baseCost, gain: 0, type: u.type };
+    });
+
+    const scoreEl = document.getElementById('score');
+    const perClickEl = document.getElementById('perClick');
+    const perSecondEl = document.getElementById('perSecond');
+    const totalClicksEl = document.getElementById('totalClicks');
+    const clickerBtn = document.getElementById('clickerBtn');
+    const upgradesEl = document.getElementById('upgrades');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const rebirthBtn = document.getElementById('rebirthBtn');
+    const rebirthCountEl = document.getElementById('rebirthCount');
+
+    function formatNum(n) {
+      if (!isFinite(n) || isNaN(n)) return '0';
+      if (n === 0) return '0';
+      const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Vg'];
+      let suffixIndex = 0;
+      while (Math.abs(n) >= 1000 && suffixIndex < suffixes.length - 1) {
+        n /= 1000;
+        suffixIndex++;
+      }
+      const formatted = n.toFixed(3).replace(/\.?0+$/, '');
+      return (formatted || '0') + suffixes[suffixIndex];
+    }
+
+    function updateUI() {
+      scoreEl.textContent = formatNum(score);
+      perClickEl.textContent = '+' + formatNum(perClick);
+      perSecondEl.textContent = formatNum(perSecond) + '/s';
+      totalClicksEl.textContent = formatNum(totalClicks);
+
+      upgradesData.forEach(u => {
+        const up = upgrades[u.id];
+        const btn = document.getElementById('buy-' + u.id);
+        const costEl = document.getElementById('cost-' + u.id);
+        const levelEl = document.getElementById('level-' + u.id);
+      if (btn && costEl) {
+        costEl.textContent = formatNum(up.cost);
+        btn.disabled = score < up.cost;
+      }
+      if (levelEl) levelEl.textContent = 'Lv.' + up.level;
+      });
+      // Rebirth button - requires 1QA (1 quadrillion) score
+      rebirthBtn.disabled = score < 1000000000000000;
+      rebirthCountEl.textContent = rebirths;
+    }
+
+    function createUpgrades() {
+      upgradesEl.innerHTML = '';
+      upgradesData.forEach(u => {
+        const up = upgrades[u.id];
+        const div = document.createElement('div');
+        div.className = 'upgrade-item';
+        div.innerHTML = `
+          <div class="upgrade-info">
+            <div class="upgrade-name">${u.name} <span class="upgrade-level" id="level-${u.id}">Lv.${up.level}</span></div>
+            <div class="upgrade-desc">${u.desc}</div>
+          </div>
+          <div class="upgrade-cost-row">
+            <span>Cost:</span>
+            <span id="cost-${u.id}">${formatNum(up.cost)}</span>
+          </div>
+          <button class="upgrade-btn" id="buy-${u.id}" data-id="${u.id}">Buy</button>
+        `;
+        upgradesEl.appendChild(div);
+      });
+      document.querySelectorAll('.upgrade-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => buyUpgrade(e.target.dataset.id));
+      });
+    }
+
+    function buyUpgrade(id) {
+      const up = upgrades[id];
+      if (!up) return;
+      const data = upgradesData.find(u => u.id === id);
+      if (score >= up.cost) {
+        score -= up.cost;
+        up.level++;
+
+    if (data.type === 'click') {
+      perClick = (1 + (data.baseGain * up.level)) * rebirthBonus;
+        } else if (data.type === 'crit') {
+          up.critChance = Math.min((up.critChance || 0) + data.baseGain, 1.0);
+        } else if (data.type === 'combo') {
+          up.comboBonus = (up.comboBonus || 0) + 0.1;
+        } else if (data.type === 'echo') {
+          up.echoChance = Math.min((up.echoChance || 0) + data.baseGain, 0.9);
+        } else if (data.type === 'momentum') {
+          up.momentumBonus = (up.momentumBonus || 0) + 0.02;
+        } else if (data.type === 'magnet') {
+          up.magnetBonus = (up.magnetBonus || 0) + data.baseGain;
+        } else if (data.type === 'synergy') {
+          up.synergyBonus = (up.synergyBonus || 0) + data.baseGain;
+        } else if (data.type === 'timewarp') {
+          up.timeWarpBonus = (up.timeWarpBonus || 0) + data.baseGain;
+        } else {
+          up.gain = data.baseGain * Math.pow(1.5, up.level - 1);
+        }
+
+        up.cost = Math.floor(up.cost * 1.3);
+
+        // Recalculate perSecond from all passive upgrades
+        perSecond = upgradesData
+          .filter(u => u.type === 'passive')
+          .reduce((sum, u) => sum + (upgrades[u.id].gain || 0), 0) * rebirthBonus;
+
+        document.getElementById('level-' + id).textContent = 'Lv.' + up.level;
+        updateUI();
+        autoSave();
+      }
+    }
+
+    function rebirth() {
+      if (score < 1000000000000000) return; // Requires 1QA (1 quadrillion)
+      rebirths++;
+      rebirthBonus = 1 + (rebirths * 0.25); // +25% per rebirth
+
+      // Reset game state but keep rebirths and rebirthBonus
+      score = 0;
+      perClick = 1 * rebirthBonus;
+      perSecond = 0;
+      totalClicks = 0;
+      lastClickTime = 0;
+      comboCounter = 0;
+
+      // Reset all upgrades
+      upgradesData.forEach(u => {
+        upgrades[u.id] = { level: 0, cost: u.baseCost, gain: 0, type: u.type };
+      });
+
+      updateUI();
+      autoSave();
+      rebirthBtn.disabled = true;
+    }
+
+    function addFloatingText(x, y, text) {
+      const el = document.createElement('span');
+      el.className = 'plus-one';
+      el.textContent = text;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      clickerBtn.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }
+
+    clickerBtn.addEventListener('click', (e) => {
+      // Momentum - faster clicking increases per-click value up to +200%
+      let momentumBonus = 0;
+      if (upgrades['momentum'] && upgrades['momentum'].level > 0) {
+        const now = Date.now();
+        const timeDiff = lastClickTime ? now - lastClickTime : 1000;
+        const rawMomentum = Math.max(0, Math.min(1, 500 / timeDiff));
+        momentumBonus = perClick * rawMomentum * upgrades['momentum'].momentumBonus * upgrades['momentum'].level * 2;
+      }
+
+      // Critical Strike - random chance for 10x damage
+      if (upgrades['crit'] && upgrades['crit'].level > 0 && Math.random() < upgrades['crit'].critChance) {
+        score += perClick * (data.multiplier - 1);
+      }
+
+      // Combo Master - build combo bonus with each click
+      if (upgrades['combo'] && upgrades['combo'].level > 0) {
+        const now = Date.now();
+        if (lastClickTime && now - lastClickTime < 1000) {
+          comboCounter++;
+        } else {
+          comboCounter = 1;
+        }
+        lastClickTime = now;
+        score += perClick * (upgrades['combo'].comboBonus * comboCounter);
+        clearTimeout(comboTimeout);
+        comboTimeout = setTimeout(() => { comboCounter = 0; }, 1000);
+      } else {
+        lastClickTime = Date.now();
+      }
+
+      // Echo Clicks - chance for free ghost click
+      if (upgrades['echo'] && upgrades['echo'].level > 0 && Math.random() < upgrades['echo'].echoChance) {
+        score += perClick;
+      }
+
+      // Click Magnet - each click collects % of passive income instantly
+      if (upgrades['magnet'] && upgrades['magnet'].level > 0) {
+        score += perSecond * upgrades['magnet'].magnetBonus / 10;
+      }
+
+      score += momentumBonus;
+      score += perClick;
+      totalClicks++;
+      updateUI();
+      autoSave();
+
+      const rect = clickerBtn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      addFloatingText(x, y, '+' + formatNum(perClick));
+    });
+
+    clickerBtn.addEventListener('mousemove', (e) => {
+      const rect = clickerBtn.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      clickerBtn.style.setProperty('--x', x + '%');
+      clickerBtn.style.setProperty('--y', y + '%');
+    });
+
+    clickerBtn.addEventListener('mouseleave', () => {
+      clickerBtn.style.setProperty('--x', '30%');
+      clickerBtn.style.setProperty('--y', '30%');
+    });
+
+    setInterval(() => {
+      if (perSecond > 0) {
+        // Synergy Engine - each owned upgrade boosts passive income
+        let synergyBonus = 0;
+        if (upgrades['synergy'] && upgrades['synergy'].level > 0) {
+          const totalUpgrades = Object.values(upgrades).filter(u => u.level > 0).length;
+          synergyBonus = totalUpgrades * upgrades['synergy'].synergyBonus;
+        }
+
+        // Time Warp - speeds up game ticks
+        let tickMultiplier = 1;
+        if (upgrades['timewarp'] && upgrades['timewarp'].level > 0) {
+          tickMultiplier += upgrades['timewarp'].timeWarpBonus;
+        }
+
+        score += (perSecond / 10) * (1 + synergyBonus) * tickMultiplier;
+        updateUI();
+        autoSave();
+      }
+    }, 100);
+
+    // Save/Load system
+    function saveGame() {
+      const saveData = {
+        score,
+        perClick,
+        perSecond,
+        totalClicks,
+        lastClickTime,
+        comboCounter,
+        rebirths,
+        upgrades: {}
+      };
+      Object.keys(upgrades).forEach(key => {
+        saveData.upgrades[key] = { ...upgrades[key] };
+      });
+      // Manual save replaces the auto-save cache
+      localStorage.setItem('school-clicker-save', JSON.stringify(saveData));
+      const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'school-clicker-save.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      saveBtn.textContent = 'Saved!';
+      setTimeout(() => { saveBtn.textContent = 'Save'; }, 1000);
+    }
+
+    function loadGame() {
+      document.getElementById('loadInput').value = '';
+      document.getElementById('loadInput').click();
+    }
+
+    document.getElementById('loadInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const saveData = JSON.parse(event.target.result);
+          score = saveData.score || 0;
+          perClick = saveData.perClick || 1;
+          perSecond = saveData.perSecond || 0;
+          totalClicks = saveData.totalClicks || 0;
+          lastClickTime = saveData.lastClickTime || 0;
+          comboCounter = saveData.comboCounter || 0;
+          if (saveData.upgrades) {
+            Object.keys(saveData.upgrades).forEach(key => {
+              if (upgrades[key]) {
+                upgrades[key] = { ...upgrades[key], ...saveData.upgrades[key] };
+              }
+            });
+          }
+          // Manual load replaces the auto-save cache
+          saveData.rebirths = rebirths;
+          localStorage.setItem('school-clicker-save', JSON.stringify(saveData));
+          updateUI();
+          loadBtn.textContent = 'Loaded!';
+          setTimeout(() => { loadBtn.textContent = 'Load'; }, 1000);
+        } catch (err) {
+          loadBtn.textContent = 'Error';
+          setTimeout(() => { loadBtn.textContent = 'Load'; }, 1000);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    saveBtn.addEventListener('click', saveGame);
+    loadBtn.addEventListener('click', loadGame);
+    rebirthBtn.addEventListener('click', rebirth);
+
+    // Cursor-following blob
+    const blobs = document.querySelectorAll('.blob');
+    const halfSize = Math.min(window.innerWidth, window.innerHeight) * 0.25; // half of 50vmin
+
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX - halfSize;
+      const y = e.clientY - halfSize;
+      blobs[0].style.transform = `translate(${x}px, ${y}px)`;
+      blobs[1].style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+createUpgrades();
+autoLoad();
+updateUI();
+
+// Auto-save on page close
+window.addEventListener('beforeunload', autoSave);
+  </script>
+</body>
+</html>

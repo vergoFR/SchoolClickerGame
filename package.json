@@ -1,0 +1,27 @@
+{
+  "name": "school-clicker",
+  "version": "1.0.0",
+  "description": "An iOS 26-inspired liquid glass clicker game with animated mesh gradient background. Fully offline, no dependencies.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080",
+    "dev": "npx http-server . -p 8080 -o"
+  },
+  "keywords": [
+    "clicker",
+    "game",
+    "offline",
+    "liquid-glass",
+    "iOS26",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead"
+  ]
+}
